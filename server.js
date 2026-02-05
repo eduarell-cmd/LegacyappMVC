@@ -11,14 +11,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Conectar a MongoDB
+// Conectar a MongoDB (en Vercel se reutiliza la conexión entre invocaciones)
 connectDB();
 
-// Middleware de logging para debug
-app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path}`);
-    next();
-});
+// Middleware de logging para debug (solo en desarrollo)
+if (process.env.NODE_ENV !== 'production') {
+    app.use((req, res, next) => {
+        console.log(`${req.method} ${req.path}`);
+        next();
+    });
+}
 
 // Rutas API (antes del estático para que /api no sirva archivos)
 app.use('/api/users', require('./routes/userRoutes'));
@@ -47,8 +49,13 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-const PORT = process.env.PORT || 3000;
+// Exportar app para Vercel serverless
+module.exports = app;
 
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-});
+// Iniciar servidor solo en local (no en Vercel)
+if (typeof process.env.VERCEL === 'undefined') {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    });
+}
