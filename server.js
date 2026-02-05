@@ -49,13 +49,9 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Exportar app para Vercel serverless
-module.exports = app;
+const PORT = process.env.PORT || 3000;
 
-// Iniciar servidor solo en local (no en Vercel)
-if (typeof process.env.VERCEL === 'undefined') {
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-        console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-    });
-}
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+});
+
