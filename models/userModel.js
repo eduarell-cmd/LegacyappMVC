@@ -1,41 +1,57 @@
-// User Model - Maneja datos de usuarios
+// User Model - Maneja datos de usuarios con MongoDB (URL relativa = mismo origen)
 class UserModel {
     constructor() {
-        this.storageKey = 'taskManager_users';
-        this.initDefaultUsers();
+        this.apiUrl = '/api/users';
     }
 
-    initDefaultUsers() {
-        if (!localStorage.getItem(this.storageKey)) {
-            const defaultUsers = [
-                { id: 1, username: 'admin', password: 'admin', name: 'Administrador' },
-                { id: 2, username: 'user1', password: 'user1', name: 'Usuario 1' },
-                { id: 3, username: 'user2', password: 'user2', name: 'Usuario 2' }
-            ];
-            this.saveUsers(defaultUsers);
+    async findUser(username, password) {
+        try {
+            const response = await fetch(`${this.apiUrl}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                return data;
+            } else {
+                console.error('Error en login:', data.message || 'Error desconocido');
+                return null;
+            }
+        } catch (error) {
+            console.error('Error al buscar usuario:', error);
+            alert('Error de conexión. Asegúrate de que el servidor esté corriendo en http://localhost:3000');
+            return null;
         }
     }
 
-    getUsers() {
-        const data = localStorage.getItem(this.storageKey);
-        return data ? JSON.parse(data) : [];
+    async getUserById(id) {
+        try {
+            const response = await fetch(`${this.apiUrl}/${id}`);
+            if (response.ok) {
+                return await response.json();
+            }
+            return null;
+        } catch (error) {
+            console.error('Error al obtener usuario:', error);
+            return null;
+        }
     }
 
-    saveUsers(users) {
-        localStorage.setItem(this.storageKey, JSON.stringify(users));
-    }
-
-    findUser(username, password) {
-        const users = this.getUsers();
-        return users.find(u => u.username === username && u.password === password);
-    }
-
-    getUserById(id) {
-        const users = this.getUsers();
-        return users.find(u => u.id === id);
-    }
-
-    getAllUsers() {
-        return this.getUsers();
+    async getAllUsers() {
+        try {
+            const response = await fetch(this.apiUrl);
+            if (response.ok) {
+                return await response.json();
+            }
+            return [];
+        } catch (error) {
+            console.error('Error al obtener usuarios:', error);
+            return [];
+        }
     }
 }

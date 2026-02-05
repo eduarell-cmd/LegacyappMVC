@@ -4,28 +4,28 @@ class ProjectController {
         this.projectModel = projectModel;
     }
 
-    addProject(projectData) {
-        return this.projectModel.addProject(projectData);
+    async addProject(projectData) {
+        return await this.projectModel.addProject(projectData);
     }
 
-    updateProject(id, updates) {
-        const project = this.projectModel.updateProject(id, updates);
+    async updateProject(id, updates) {
+        const project = await this.projectModel.updateProject(id, updates);
         if (!project) {
             return { success: false, message: 'Proyecto no encontrado' };
         }
         return { success: true, project };
     }
 
-    deleteProject(id) {
-        const deleted = this.projectModel.deleteProject(id);
+    async deleteProject(id) {
+        const deleted = await this.projectModel.deleteProject(id);
         return { success: deleted };
     }
 
-    getProject(id) {
-        return this.projectModel.getProjectById(id);
+    async getProject(id) {
+        return await this.projectModel.getProjectById(id);
     }
 
-    getAllProjects() {
-        return this.projectModel.getProjects();
+    async getAllProjects() {
+        return await this.projectModel.getProjects();
     }
 }

@@ -4,17 +4,17 @@ class NotificationController {
         this.notificationModel = notificationModel;
     }
 
-    getNotificationsByUserId(userId) {
-        return this.notificationModel.getNotificationsByUserId(userId)
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    async getNotificationsByUserId(userId) {
+        const notifications = await this.notificationModel.getNotificationsByUserId(userId);
+        return notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
-    markAsRead(userId) {
-        this.notificationModel.markAsRead(userId);
+    async markAsRead(userId) {
+        await this.notificationModel.markAsRead(userId);
         return { success: true };
     }
 
-    getUnreadCount(userId) {
-        return this.notificationModel.getUnreadCount(userId);
+    async getUnreadCount(userId) {
+        return await this.notificationModel.getUnreadCount(userId);
     }
 }

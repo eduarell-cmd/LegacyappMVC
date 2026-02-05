@@ -1,44 +1,65 @@
-// History Model - Maneja historial de cambios
+// History Model - Maneja historial de cambios con MongoDB (URL relativa = mismo origen)
 class HistoryModel {
     constructor() {
-        this.storageKey = 'taskManager_history';
-        this.initDefaultHistory();
+        this.apiUrl = '/api/history';
     }
 
-    initDefaultHistory() {
-        if (!localStorage.getItem(this.storageKey)) {
-            this.saveHistory([]);
+    async getHistory() {
+        try {
+            const response = await fetch(this.apiUrl);
+            if (response.ok) {
+                return await response.json();
+            }
+            return [];
+        } catch (error) {
+            console.error('Error al obtener historial:', error);
+            return [];
         }
     }
 
-    getHistory() {
-        const data = localStorage.getItem(this.storageKey);
-        return data ? JSON.parse(data) : [];
+    async addHistoryEntry(entry) {
+        try {
+            const response = await fetch(this.apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    taskId: entry.taskId,
+                    userId: entry.userId,
+                    action: entry.action || entry.description || 'Cambio realizado',
+                    changes: {
+                        description: entry.description,
+                        oldValue: entry.oldValue,
+                        newValue: entry.newValue
+                    }
+                })
+            });
+            
+            if (response.ok) {
+                return await response.json();
+            }
+            return null;
+        } catch (error) {
+            console.error('Error al agregar entrada de historial:', error);
+            return null;
+        }
     }
 
-    saveHistory(history) {
-        localStorage.setItem(this.storageKey, JSON.stringify(history));
+    async getHistoryByTaskId(taskId) {
+        try {
+            const response = await fetch(`${this.apiUrl}/task/${taskId}`);
+            if (response.ok) {
+                return await response.json();
+            }
+            return [];
+        } catch (error) {
+            console.error('Error al obtener historial por tarea:', error);
+            return [];
+        }
     }
 
-    getNextId() {
-        const history = this.getHistory();
-        return history.length > 0 ? Math.max(...history.map(h => h.id)) + 1 : 1;
-    }
-
-    addHistoryEntry(entry) {
-        const history = this.getHistory();
-        entry.id = this.getNextId();
-        entry.timestamp = new Date().toISOString();
-        history.push(entry);
-        this.saveHistory(history);
-        return entry;
-    }
-
-    getHistoryByTaskId(taskId) {
-        return this.getHistory().filter(h => h.taskId === taskId);
-    }
-
-    getAllHistory() {
-        return this.getHistory().sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    async getAllHistory() {
+        return await this.getHistory();
     }
 }

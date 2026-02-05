@@ -12,22 +12,25 @@ class TaskView {
         this.tasksTableBody.innerHTML = '';
         
         tasks.forEach(task => {
+            const taskId = getId(task);
             const row = document.createElement('tr');
-            row.onclick = () => this.selectTask(task.id);
+            row.onclick = () => this.selectTask(taskId);
             
-            const project = projects.find(p => p.id === task.projectId);
-            const user = users.find(u => u.id === task.assignedTo);
+            const projectId = getProjectId(task);
+            const assignedToId = getAssignedToId(task);
+            const project = projectId ? findById(projects, projectId) : null;
+            const user = assignedToId ? findById(users, assignedToId) : null;
             
             const statusBadge = this.getStatusBadge(task.status);
             const priorityBadge = this.getPriorityBadge(task.priority);
             
             row.innerHTML = `
-                <td>${task.id}</td>
+                <td>${taskId}</td>
                 <td><strong>${task.title}</strong></td>
                 <td>${statusBadge}</td>
                 <td>${priorityBadge}</td>
-                <td>${project ? project.name : 'N/A'}</td>
-                <td>${user ? (user.name || user.username) : 'N/A'}</td>
+                <td>${project ? project.name : (task.projectId?.name || 'N/A')}</td>
+                <td>${user ? (user.name || user.username) : (task.assignedTo?.name || task.assignedTo?.username || 'N/A')}</td>
                 <td>${task.dueDate || 'N/A'}</td>
             `;
             
@@ -52,15 +55,17 @@ class TaskView {
     }
 
     getTaskFormData() {
+        const projectId = document.getElementById('taskProject').value || null;
+        const assignedTo = document.getElementById('taskAssigned').value || null;
         return {
             title: document.getElementById('taskTitle').value,
             description: document.getElementById('taskDescription').value,
             status: document.getElementById('taskStatus').value,
             priority: document.getElementById('taskPriority').value,
-            projectId: parseInt(document.getElementById('taskProject').value) || null,
-            assignedTo: parseInt(document.getElementById('taskAssigned').value) || null,
+            projectId: projectId || null,
+            assignedTo: assignedTo || null,
             dueDate: document.getElementById('taskDueDate').value || null,
-            hours: parseFloat(document.getElementById('taskHours').value) || null
+            estimatedHours: parseFloat(document.getElementById('taskHours').value) || null
         };
     }
 
@@ -69,11 +74,13 @@ class TaskView {
         document.getElementById('taskDescription').value = task.description || '';
         document.getElementById('taskStatus').value = task.status || 'Pendiente';
         document.getElementById('taskPriority').value = task.priority || 'Baja';
-        document.getElementById('taskProject').value = task.projectId || '';
-        document.getElementById('taskAssigned').value = task.assignedTo || '';
+        const projectId = getProjectId(task);
+        const assignedToId = getAssignedToId(task);
+        document.getElementById('taskProject').value = projectId || '';
+        document.getElementById('taskAssigned').value = assignedToId || '';
         document.getElementById('taskDueDate').value = task.dueDate || '';
-        document.getElementById('taskHours').value = task.hours || '';
-        this.selectedTaskId = task.id;
+        document.getElementById('taskHours').value = task.estimatedHours || task.hours || '';
+        this.selectedTaskId = getId(task);
     }
 
     clearTaskForm() {
@@ -101,7 +108,7 @@ class TaskView {
         select.innerHTML = '<option value="">Seleccionar...</option>';
         projects.forEach(project => {
             const option = document.createElement('option');
-            option.value = project.id;
+            option.value = getId(project);
             option.textContent = project.name;
             select.appendChild(option);
         });
@@ -114,7 +121,7 @@ class TaskView {
         select.innerHTML = '<option value="">Seleccionar...</option>';
         users.forEach(user => {
             const option = document.createElement('option');
-            option.value = user.id;
+            option.value = getId(user);
             option.textContent = user.name || user.username;
             select.appendChild(option);
         });

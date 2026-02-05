@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Proyecto Demo",
+    "description": "Proyecto de demostración"
+  },
+  {
+    "name": "Proyecto Alpha",
+    "description": "Primer proyecto importante"
+  },
+  {
+    "name": "Proyecto Beta",
+    "description": "Segundo proyecto importante"
+  }
+]

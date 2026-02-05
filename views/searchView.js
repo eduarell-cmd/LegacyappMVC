@@ -18,17 +18,18 @@ class SearchView {
         
         tasks.forEach(task => {
             const row = document.createElement('tr');
-            const project = projects.find(p => p.id === task.projectId);
+            const projectId = getProjectId(task);
+            const project = projectId ? findById(projects, projectId) : null;
             
             const statusBadge = this.getStatusBadge(task.status);
             const priorityBadge = this.getPriorityBadge(task.priority);
             
             row.innerHTML = `
-                <td>${task.id}</td>
+                <td>${getId(task)}</td>
                 <td><strong>${task.title}</strong></td>
                 <td>${statusBadge}</td>
                 <td>${priorityBadge}</td>
-                <td>${project ? project.name : 'N/A'}</td>
+                <td>${project ? project.name : (task.projectId?.name || 'N/A')}</td>
             `;
             
             this.searchTableBody.appendChild(row);
@@ -36,11 +37,12 @@ class SearchView {
     }
 
     getSearchFilters() {
+        const projectId = document.getElementById('searchProject').value;
         return {
             text: document.getElementById('searchText').value,
             status: document.getElementById('searchStatus').value,
             priority: document.getElementById('searchPriority').value,
-            projectId: parseInt(document.getElementById('searchProject').value) || 0
+            projectId: projectId && projectId !== '0' ? projectId : 0
         };
     }
 
@@ -51,7 +53,7 @@ class SearchView {
         select.innerHTML = '<option value="0">Todos</option>';
         projects.forEach(project => {
             const option = document.createElement('option');
-            option.value = project.id;
+            option.value = getId(project);
             option.textContent = project.name;
             select.appendChild(option);
         });

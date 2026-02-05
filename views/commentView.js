@@ -15,7 +15,8 @@ class CommentView {
         let text = '';
         comments.forEach(comment => {
             const date = new Date(comment.createdAt).toLocaleString();
-            text += `[${date}] ${comment.userName || 'Usuario'}:\n`;
+            const userName = comment.userId?.name || comment.userId?.username || comment.userName || 'Usuario';
+            text += `[${date}] ${userName}:\n`;
             text += `${comment.text}\n`;
             text += '---\n\n';
         });
@@ -25,7 +26,7 @@ class CommentView {
 
     getCommentFormData() {
         return {
-            taskId: parseInt(document.getElementById('commentTaskId').value),
+            taskId: document.getElementById('commentTaskId').value,
             text: document.getElementById('commentText').value
         };
     }

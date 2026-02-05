@@ -6,13 +6,32 @@ class TaskController {
         this.notificationModel = notificationModel;
     }
 
-    addTask(taskData, currentUser) {
-        const task = this.taskModel.addTask(taskData);
+    async addTask(taskData, currentUser) {
+        // Convertir IDs de string a ObjectId si es necesario
+        if (taskData.projectId && typeof taskData.projectId === 'string') {
+            // Mantener como string, MongoDB lo manejará
+        }
+        if (taskData.assignedTo && typeof taskData.assignedTo === 'string') {
+            // Mantener como string
+        }
+        if (currentUser && currentUser._id) {
+            taskData.createdBy = currentUser._id;
+        } else if (currentUser && currentUser.id) {
+            taskData.createdBy = currentUser.id;
+        }
+
+        const task = await this.taskModel.addTask(taskData);
+        if (!task) {
+            return null;
+        }
+
+        const taskId = task._id || task.id;
+        const userId = currentUser._id || currentUser.id;
         
         // Registrar en historial
-        this.historyModel.addHistoryEntry({
-            taskId: task.id,
-            userId: currentUser.id,
+        await this.historyModel.addHistoryEntry({
+            taskId: taskId,
+            userId: userId,
             action: 'CREAR',
             description: `Tarea "${task.title}" creada`,
             oldValue: null,
@@ -21,31 +40,36 @@ class TaskController {
 
         // Notificar si hay asignado
         if (task.assignedTo) {
-            this.notificationModel.addNotification({
+            await this.notificationModel.addNotification({
                 userId: task.assignedTo,
-                type: 'TASK_ASSIGNED',
-                message: `Nueva tarea asignada: ${task.title}`,
-                taskId: task.id
+                type: 'task_assigned',
+                message: `Nueva tarea asignada: ${task.title}`
             });
         }
 
         return task;
     }
 
-    updateTask(id, updates, currentUser) {
-        const oldTask = this.taskModel.getTaskById(id);
+    async updateTask(id, updates, currentUser) {
+        const oldTask = await this.taskModel.getTaskById(id);
         if (!oldTask) {
             return { success: false, message: 'Tarea no encontrada' };
         }
 
-        const updatedTask = this.taskModel.updateTask(id, updates);
+        const updatedTask = await this.taskModel.updateTask(id, updates);
+        if (!updatedTask) {
+            return { success: false, message: 'Error al actualizar tarea' };
+        }
+
+        const taskId = id;
+        const userId = currentUser._id || currentUser.id;
         
         // Registrar cambios en historial
         Object.keys(updates).forEach(key => {
             if (updates[key] !== oldTask[key]) {
                 this.historyModel.addHistoryEntry({
-                    taskId: id,
-                    userId: currentUser.id,
+                    taskId: taskId,
+                    userId: userId,
                     action: 'ACTUALIZAR',
                     description: `Campo "${key}" actualizado`,
                     oldValue: String(oldTask[key]),
@@ -56,30 +80,30 @@ class TaskController {
 
         // Notificar si cambió el asignado
         if (updates.assignedTo && updates.assignedTo !== oldTask.assignedTo) {
-            this.notificationModel.addNotification({
+            await this.notificationModel.addNotification({
                 userId: updates.assignedTo,
-                type: 'TASK_ASSIGNED',
-                message: `Tarea asignada: ${updatedTask.title}`,
-                taskId: id
+                type: 'task_assigned',
+                message: `Tarea asignada: ${updatedTask.title}`
             });
         }
 
         return { success: true, task: updatedTask };
     }
 
-    deleteTask(id, currentUser) {
-        const task = this.taskModel.getTaskById(id);
+    async deleteTask(id, currentUser) {
+        const task = await this.taskModel.getTaskById(id);
         if (!task) {
             return { success: false, message: 'Tarea no encontrada' };
         }
 
-        const deleted = this.taskModel.deleteTask(id);
+        const deleted = await this.taskModel.deleteTask(id);
         
         if (deleted) {
+            const userId = currentUser._id || currentUser.id;
             // Registrar en historial
-            this.historyModel.addHistoryEntry({
+            await this.historyModel.addHistoryEntry({
                 taskId: id,
-                userId: currentUser.id,
+                userId: userId,
                 action: 'ELIMINAR',
                 description: `Tarea "${task.title}" eliminada`,
                 oldValue: JSON.stringify(task),
@@ -90,15 +114,15 @@ class TaskController {
         return { success: deleted };
     }
 
-    getTask(id) {
-        return this.taskModel.getTaskById(id);
+    async getTask(id) {
+        return await this.taskModel.getTaskById(id);
     }
 
-    getAllTasks() {
-        return this.taskModel.getTasks();
+    async getAllTasks() {
+        return await this.taskModel.getTasks();
     }
 
-    getStats() {
-        return this.taskModel.getStats();
+    async getStats() {
+        return await this.taskModel.getStats();
     }
 }

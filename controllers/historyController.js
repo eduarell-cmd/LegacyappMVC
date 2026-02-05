@@ -6,25 +6,30 @@ class HistoryController {
         this.userModel = userModel;
     }
 
-    getHistoryByTaskId(taskId) {
-        const history = this.historyModel.getHistoryByTaskId(taskId);
-        return this.enrichHistory(history);
+    async getHistoryByTaskId(taskId) {
+        const history = await this.historyModel.getHistoryByTaskId(taskId);
+        return await this.enrichHistory(history);
     }
 
-    getAllHistory() {
-        const history = this.historyModel.getAllHistory();
-        return this.enrichHistory(history);
+    async getAllHistory() {
+        const history = await this.historyModel.getAllHistory();
+        return await this.enrichHistory(history);
     }
 
-    enrichHistory(history) {
-        return history.map(entry => {
-            const task = this.taskModel.getTaskById(entry.taskId);
-            const user = this.userModel.getUserById(entry.userId);
+    async enrichHistory(history) {
+        const enriched = await Promise.all(history.map(async (entry) => {
+            const taskId = entry.taskId?._id || entry.taskId;
+            const userId = entry.userId?._id || entry.userId;
+            
+            const task = taskId ? await this.taskModel.getTaskById(taskId) : null;
+            const user = userId ? await this.userModel.getUserById(userId) : null;
+            
             return {
                 ...entry,
-                taskTitle: task ? task.title : 'Tarea eliminada',
-                userName: user ? (user.name || user.username) : 'Usuario desconocido'
+                taskTitle: task ? task.title : (entry.taskId?.title || 'Tarea eliminada'),
+                userName: user ? (user.name || user.username) : (entry.userId?.name || entry.userId?.username || 'Usuario desconocido')
             };
-        });
+        }));
+        return enriched;
     }
 }

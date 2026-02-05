@@ -6,21 +6,23 @@ class CommentController {
         this.historyModel = historyModel;
     }
 
-    addComment(commentData, currentUser) {
+    async addComment(commentData, currentUser) {
         // Verificar que la tarea existe
-        const task = this.taskModel.getTaskById(commentData.taskId);
+        const task = await this.taskModel.getTaskById(commentData.taskId);
         if (!task) {
             return { success: false, message: 'Tarea no encontrada' };
         }
 
-        commentData.userId = currentUser.id;
-        commentData.userName = currentUser.name || currentUser.username;
-        const comment = this.commentModel.addComment(commentData);
+        commentData.userId = currentUser._id || currentUser.id;
+        const comment = await this.commentModel.addComment(commentData);
+        if (!comment) {
+            return { success: false, message: 'Error al agregar comentario' };
+        }
 
         // Registrar en historial
-        this.historyModel.addHistoryEntry({
+        await this.historyModel.addHistoryEntry({
             taskId: commentData.taskId,
-            userId: currentUser.id,
+            userId: currentUser._id || currentUser.id,
             action: 'COMENTARIO',
             description: `Comentario agregado: ${commentData.text.substring(0, 50)}...`,
             oldValue: null,
@@ -30,11 +32,11 @@ class CommentController {
         return { success: true, comment };
     }
 
-    getCommentsByTaskId(taskId) {
-        return this.commentModel.getCommentsByTaskId(taskId);
+    async getCommentsByTaskId(taskId) {
+        return await this.commentModel.getCommentsByTaskId(taskId);
     }
 
-    getAllComments() {
-        return this.commentModel.getAllComments();
+    async getAllComments() {
+        return await this.commentModel.getAllComments();
     }
 }

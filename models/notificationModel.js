@@ -1,56 +1,82 @@
-// Notification Model - Maneja notificaciones
+// Notification Model - Maneja notificaciones con MongoDB (URL relativa = mismo origen)
 class NotificationModel {
     constructor() {
-        this.storageKey = 'taskManager_notifications';
-        this.initDefaultNotifications();
+        this.apiUrl = '/api/notifications';
     }
 
-    initDefaultNotifications() {
-        if (!localStorage.getItem(this.storageKey)) {
-            this.saveNotifications([]);
+    async getNotifications() {
+        try {
+            const response = await fetch(this.apiUrl);
+            if (response.ok) {
+                return await response.json();
+            }
+            return [];
+        } catch (error) {
+            console.error('Error al obtener notificaciones:', error);
+            return [];
         }
     }
 
-    getNotifications() {
-        const data = localStorage.getItem(this.storageKey);
-        return data ? JSON.parse(data) : [];
-    }
-
-    saveNotifications(notifications) {
-        localStorage.setItem(this.storageKey, JSON.stringify(notifications));
-    }
-
-    getNextId() {
-        const notifications = this.getNotifications();
-        return notifications.length > 0 ? Math.max(...notifications.map(n => n.id)) + 1 : 1;
-    }
-
-    addNotification(notification) {
-        const notifications = this.getNotifications();
-        notification.id = this.getNextId();
-        notification.createdAt = new Date().toISOString();
-        notification.read = false;
-        notifications.push(notification);
-        this.saveNotifications(notifications);
-        return notification;
-    }
-
-    getNotificationsByUserId(userId) {
-        return this.getNotifications().filter(n => n.userId === userId);
-    }
-
-    markAsRead(userId) {
-        const notifications = this.getNotifications();
-        notifications.forEach(n => {
-            if (n.userId === userId && !n.read) {
-                n.read = true;
-                n.readAt = new Date().toISOString();
+    async addNotification(notification) {
+        try {
+            const response = await fetch(this.apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: notification.userId,
+                    message: notification.message,
+                    type: notification.type || 'other'
+                })
+            });
+            
+            if (response.ok) {
+                return await response.json();
             }
-        });
-        this.saveNotifications(notifications);
+            return null;
+        } catch (error) {
+            console.error('Error al agregar notificación:', error);
+            return null;
+        }
     }
 
-    getUnreadCount(userId) {
-        return this.getNotificationsByUserId(userId).filter(n => !n.read).length;
+    async getNotificationsByUserId(userId) {
+        try {
+            const response = await fetch(`${this.apiUrl}/user/${userId}`);
+            if (response.ok) {
+                return await response.json();
+            }
+            return [];
+        } catch (error) {
+            console.error('Error al obtener notificaciones por usuario:', error);
+            return [];
+        }
+    }
+
+    async markAsRead(userId) {
+        try {
+            const response = await fetch(`${this.apiUrl}/user/${userId}/read`, {
+                method: 'PUT'
+            });
+            return response.ok;
+        } catch (error) {
+            console.error('Error al marcar notificaciones como leídas:', error);
+            return false;
+        }
+    }
+
+    async getUnreadCount(userId) {
+        try {
+            const response = await fetch(`${this.apiUrl}/user/${userId}/unread`);
+            if (response.ok) {
+                const data = await response.json();
+                return data.count || 0;
+            }
+            return 0;
+        } catch (error) {
+            console.error('Error al obtener conteo de no leídas:', error);
+            return 0;
+        }
     }
 }

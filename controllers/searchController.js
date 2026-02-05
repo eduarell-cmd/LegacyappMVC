@@ -5,11 +5,11 @@ class SearchController {
         this.projectModel = projectModel;
     }
 
-    searchTasks(filters) {
-        return this.taskModel.searchTasks(filters);
+    async searchTasks(filters) {
+        return await this.taskModel.searchTasks(filters);
     }
 
-    getAllProjects() {
-        return this.projectModel.getProjects();
+    async getAllProjects() {
+        return await this.projectModel.getProjects();
     }
 }

@@ -1,64 +1,84 @@
-// Project Model - Maneja datos de proyectos
+// Project Model - Maneja datos de proyectos con MongoDB (URL relativa = mismo origen)
 class ProjectModel {
     constructor() {
-        this.storageKey = 'taskManager_projects';
-        this.initDefaultProjects();
+        this.apiUrl = '/api/projects';
     }
 
-    initDefaultProjects() {
-        if (!localStorage.getItem(this.storageKey)) {
-            const defaultProjects = [
-                { id: 1, name: 'Proyecto Demo', description: 'Proyecto de demostración', createdAt: new Date().toISOString() },
-                { id: 2, name: 'Proyecto Alpha', description: 'Primer proyecto importante', createdAt: new Date().toISOString() },
-                { id: 3, name: 'Proyecto Beta', description: 'Segundo proyecto importante', createdAt: new Date().toISOString() }
-            ];
-            this.saveProjects(defaultProjects);
+    async getProjects() {
+        try {
+            const response = await fetch(this.apiUrl);
+            if (response.ok) {
+                return await response.json();
+            }
+            return [];
+        } catch (error) {
+            console.error('Error al obtener proyectos:', error);
+            return [];
         }
     }
 
-    getProjects() {
-        const data = localStorage.getItem(this.storageKey);
-        return data ? JSON.parse(data) : [];
-    }
-
-    saveProjects(projects) {
-        localStorage.setItem(this.storageKey, JSON.stringify(projects));
-    }
-
-    getNextId() {
-        const projects = this.getProjects();
-        return projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1;
-    }
-
-    addProject(project) {
-        const projects = this.getProjects();
-        project.id = this.getNextId();
-        project.createdAt = new Date().toISOString();
-        projects.push(project);
-        this.saveProjects(projects);
-        return project;
-    }
-
-    updateProject(id, updates) {
-        const projects = this.getProjects();
-        const index = projects.findIndex(p => p.id === id);
-        if (index !== -1) {
-            projects[index] = { ...projects[index], ...updates };
-            this.saveProjects(projects);
-            return projects[index];
+    async addProject(project) {
+        try {
+            const response = await fetch(this.apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(project)
+            });
+            
+            if (response.ok) {
+                return await response.json();
+            }
+            return null;
+        } catch (error) {
+            console.error('Error al agregar proyecto:', error);
+            return null;
         }
-        return null;
     }
 
-    deleteProject(id) {
-        const projects = this.getProjects();
-        const filtered = projects.filter(p => p.id !== id);
-        this.saveProjects(filtered);
-        return filtered.length < projects.length;
+    async updateProject(id, updates) {
+        try {
+            const response = await fetch(`${this.apiUrl}/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updates)
+            });
+            
+            if (response.ok) {
+                return await response.json();
+            }
+            return null;
+        } catch (error) {
+            console.error('Error al actualizar proyecto:', error);
+            return null;
+        }
     }
 
-    getProjectById(id) {
-        const projects = this.getProjects();
-        return projects.find(p => p.id === id);
+    async deleteProject(id) {
+        try {
+            const response = await fetch(`${this.apiUrl}/${id}`, {
+                method: 'DELETE'
+            });
+            return response.ok;
+        } catch (error) {
+            console.error('Error al eliminar proyecto:', error);
+            return false;
+        }
+    }
+
+    async getProjectById(id) {
+        try {
+            const response = await fetch(`${this.apiUrl}/${id}`);
+            if (response.ok) {
+                return await response.json();
+            }
+            return null;
+        } catch (error) {
+            console.error('Error al obtener proyecto:', error);
+            return null;
+        }
     }
 }

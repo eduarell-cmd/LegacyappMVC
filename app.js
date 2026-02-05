@@ -33,9 +33,9 @@ const reportView = new ReportView();
 let currentTab = 'tasks';
 
 // Funciones globales para eventos del HTML
-function login() {
+async function login() {
     const credentials = authView.getLoginData();
-    const result = authController.login(credentials.username, credentials.password);
+    const result = await authController.login(credentials.username, credentials.password);
     
     if (result.success) {
         authView.showMain(result.user);
@@ -95,16 +95,16 @@ function getTabName(tabName) {
     return names[tabName] || tabName;
 }
 
-function loadTabData(tabName) {
+async function loadTabData(tabName) {
     const user = authController.getCurrentUser();
     if (!user) return;
     
     switch(tabName) {
         case 'tasks':
-            loadTasks();
+            await loadTasks();
             break;
         case 'projects':
-            loadProjects();
+            await loadProjects();
             break;
         case 'comments':
             // No cargar automáticamente
@@ -113,10 +113,10 @@ function loadTabData(tabName) {
             // No cargar automáticamente
             break;
         case 'notifications':
-            loadNotifications();
+            await loadNotifications();
             break;
         case 'search':
-            loadSearchProjects();
+            await loadSearchProjects();
             break;
         case 'reports':
             // No cargar automáticamente
@@ -125,14 +125,14 @@ function loadTabData(tabName) {
 }
 
 // Funciones de Tareas
-function loadTasks() {
+async function loadTasks() {
     const user = authController.getCurrentUser();
     if (!user) return;
     
-    const tasks = taskController.getAllTasks();
-    const projects = projectController.getAllProjects();
-    const users = userModel.getAllUsers();
-    const stats = taskController.getStats();
+    const tasks = await taskController.getAllTasks();
+    const projects = await projectController.getAllProjects();
+    const users = await userModel.getAllUsers();
+    const stats = await taskController.getStats();
     
     taskView.renderTasks(tasks, projects, users);
     taskView.renderStats(stats);
@@ -140,7 +140,7 @@ function loadTasks() {
     taskView.populateUserSelect(users);
 }
 
-function addTask() {
+async function addTask() {
     const user = authController.getCurrentUser();
     if (!user) return;
     
@@ -150,12 +150,12 @@ function addTask() {
         return;
     }
     
-    taskController.addTask(taskData, user);
-    loadTasks();
+    await taskController.addTask(taskData, user);
+    await loadTasks();
     taskView.clearTaskForm();
 }
 
-function updateTask() {
+async function updateTask() {
     const user = authController.getCurrentUser();
     if (!user) return;
     
@@ -166,17 +166,17 @@ function updateTask() {
     }
     
     const taskData = taskView.getTaskFormData();
-    const result = taskController.updateTask(taskId, taskData, user);
+    const result = await taskController.updateTask(taskId, taskData, user);
     
     if (result.success) {
-        loadTasks();
+        await loadTasks();
         taskView.clearTaskForm();
     } else {
         alert(result.message);
     }
 }
 
-function deleteTask() {
+async function deleteTask() {
     const user = authController.getCurrentUser();
     if (!user) return;
     
@@ -187,9 +187,9 @@ function deleteTask() {
     }
     
     if (confirm('¿Estás seguro de eliminar esta tarea?')) {
-        const result = taskController.deleteTask(taskId, user);
+        const result = await taskController.deleteTask(taskId, user);
         if (result.success) {
-            loadTasks();
+            await loadTasks();
             taskView.clearTaskForm();
         }
     }
@@ -200,24 +200,24 @@ function clearTaskForm() {
 }
 
 // Funciones de Proyectos
-function loadProjects() {
-    const projects = projectController.getAllProjects();
+async function loadProjects() {
+    const projects = await projectController.getAllProjects();
     projectView.renderProjects(projects);
 }
 
-function addProject() {
+async function addProject() {
     const projectData = projectView.getProjectFormData();
     if (!projectData.name) {
         alert('El nombre es requerido');
         return;
     }
     
-    projectController.addProject(projectData);
-    loadProjects();
+    await projectController.addProject(projectData);
+    await loadProjects();
     projectView.clearProjectForm();
 }
 
-function updateProject() {
+async function updateProject() {
     const projectId = projectView.getSelectedProjectId();
     if (!projectId) {
         alert('Selecciona un proyecto primero');
@@ -225,21 +225,21 @@ function updateProject() {
     }
     
     const projectData = projectView.getProjectFormData();
-    const result = projectController.updateProject(projectId, projectData);
+    const result = await projectController.updateProject(projectId, projectData);
     
     if (result.success) {
-        loadProjects();
+        await loadProjects();
         projectView.clearProjectForm();
         // Recargar tareas también para actualizar selects
         if (currentTab === 'tasks') {
-            loadTasks();
+            await loadTasks();
         }
     } else {
         alert(result.message);
     }
 }
 
-function deleteProject() {
+async function deleteProject() {
     const projectId = projectView.getSelectedProjectId();
     if (!projectId) {
         alert('Selecciona un proyecto primero');
@@ -247,20 +247,20 @@ function deleteProject() {
     }
     
     if (confirm('¿Estás seguro de eliminar este proyecto?')) {
-        const result = projectController.deleteProject(projectId);
+        const result = await projectController.deleteProject(projectId);
         if (result.success) {
-            loadProjects();
+            await loadProjects();
             projectView.clearProjectForm();
             // Recargar tareas también
             if (currentTab === 'tasks') {
-                loadTasks();
+                await loadTasks();
             }
         }
     }
 }
 
 // Funciones de Comentarios
-function addComment() {
+async function addComment() {
     const user = authController.getCurrentUser();
     if (!user) return;
     
@@ -270,86 +270,88 @@ function addComment() {
         return;
     }
     
-    const result = commentController.addComment(commentData, user);
+    const result = await commentController.addComment(commentData, user);
     if (result.success) {
         commentView.clearCommentForm();
-        loadComments();
+        await loadComments();
     } else {
         alert(result.message);
     }
 }
 
-function loadComments() {
-    const taskId = parseInt(document.getElementById('commentTaskId').value);
+async function loadComments() {
+    const taskId = document.getElementById('commentTaskId').value;
     if (!taskId) {
         alert('Ingresa un ID de tarea');
         return;
     }
     
-    const comments = commentController.getCommentsByTaskId(taskId);
+    const comments = await commentController.getCommentsByTaskId(taskId);
     commentView.renderComments(comments);
 }
 
 // Funciones de Historial
-function loadHistory() {
-    const taskId = parseInt(document.getElementById('historyTaskId').value);
+async function loadHistory() {
+    const taskId = document.getElementById('historyTaskId').value;
     if (!taskId) {
         alert('Ingresa un ID de tarea');
         return;
     }
     
-    const history = historyController.getHistoryByTaskId(taskId);
+    const history = await historyController.getHistoryByTaskId(taskId);
     historyView.renderHistory(history);
 }
 
-function loadAllHistory() {
-    const history = historyController.getAllHistory();
+async function loadAllHistory() {
+    const history = await historyController.getAllHistory();
     historyView.renderHistory(history);
 }
 
 // Funciones de Notificaciones
-function loadNotifications() {
+async function loadNotifications() {
     const user = authController.getCurrentUser();
     if (!user) return;
     
-    const notifications = notificationController.getNotificationsByUserId(user.id);
+    const userId = user._id || user.id;
+    const notifications = await notificationController.getNotificationsByUserId(userId);
     notificationView.renderNotifications(notifications);
 }
 
-function markNotificationsRead() {
+async function markNotificationsRead() {
     const user = authController.getCurrentUser();
     if (!user) return;
     
-    notificationController.markAsRead(user.id);
-    loadNotifications();
+    const userId = user._id || user.id;
+    await notificationController.markAsRead(userId);
+    await loadNotifications();
 }
 
 // Funciones de Búsqueda
-function loadSearchProjects() {
-    const projects = searchController.getAllProjects();
+async function loadSearchProjects() {
+    const projects = await searchController.getAllProjects();
     searchView.populateProjectSelect(projects);
 }
 
-function searchTasks() {
+async function searchTasks() {
     const filters = searchView.getSearchFilters();
-    const results = searchController.searchTasks(filters);
-    const projects = searchController.getAllProjects();
+    const results = await searchController.searchTasks(filters);
+    const projects = await searchController.getAllProjects();
     searchView.renderSearchResults(results, projects);
 }
 
 // Funciones de Reportes
-function generateReport(type) {
+async function generateReport(type) {
     let report = '';
     
     switch(type) {
         case 'tasks':
-            report = reportController.generateTasksReport();
+            report = await reportController.generateTasksReport();
             break;
         case 'projects':
-            report = reportController.generateProjectsReport();
+            report = await reportController.generateProjectsReport();
             break;
         case 'users':
-            report = reportController.generateUsersReport();
+            report = await reportController.generateUsersReport();
             break;
         default:
             report = 'Tipo de reporte no válido';
@@ -358,8 +360,8 @@ function generateReport(type) {
     reportView.renderReport(report);
 }
 
-function exportCSV() {
-    const csv = reportController.exportToCSV();
+async function exportCSV() {
+    const csv = await reportController.exportToCSV();
     reportView.downloadCSV(csv, 'task_manager_report.csv');
 }
 
@@ -381,11 +383,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Manejar clics en filas de tareas para cargar datos en el formulario
-document.addEventListener('click', function(e) {
+document.addEventListener('click', async function(e) {
     if (e.target.closest('#tasksTableBody tr')) {
         const row = e.target.closest('tr');
-        const taskId = parseInt(row.firstChild.textContent);
-        const task = taskController.getTask(taskId);
+        const taskId = row.firstChild.textContent;
+        const task = await taskController.getTask(taskId);
         if (task) {
             taskView.populateTaskForm(task);
         }
@@ -393,8 +395,8 @@ document.addEventListener('click', function(e) {
     
     if (e.target.closest('#projectsTableBody tr')) {
         const row = e.target.closest('tr');
-        const projectId = parseInt(row.firstChild.textContent);
-        const project = projectController.getProject(projectId);
+        const projectId = row.firstChild.textContent;
+        const project = await projectController.getProject(projectId);
         if (project) {
             projectView.populateProjectForm(project);
         }

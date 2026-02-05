@@ -1,44 +1,56 @@
-// Comment Model - Maneja datos de comentarios
+// Comment Model - Maneja datos de comentarios con MongoDB (URL relativa = mismo origen)
 class CommentModel {
     constructor() {
-        this.storageKey = 'taskManager_comments';
-        this.initDefaultComments();
+        this.apiUrl = '/api/comments';
     }
 
-    initDefaultComments() {
-        if (!localStorage.getItem(this.storageKey)) {
-            this.saveComments([]);
+    async getComments() {
+        try {
+            const response = await fetch(this.apiUrl);
+            if (response.ok) {
+                return await response.json();
+            }
+            return [];
+        } catch (error) {
+            console.error('Error al obtener comentarios:', error);
+            return [];
         }
     }
 
-    getComments() {
-        const data = localStorage.getItem(this.storageKey);
-        return data ? JSON.parse(data) : [];
+    async addComment(comment) {
+        try {
+            const response = await fetch(this.apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(comment)
+            });
+            
+            if (response.ok) {
+                return await response.json();
+            }
+            return null;
+        } catch (error) {
+            console.error('Error al agregar comentario:', error);
+            return null;
+        }
     }
 
-    saveComments(comments) {
-        localStorage.setItem(this.storageKey, JSON.stringify(comments));
+    async getCommentsByTaskId(taskId) {
+        try {
+            const response = await fetch(`${this.apiUrl}/task/${taskId}`);
+            if (response.ok) {
+                return await response.json();
+            }
+            return [];
+        } catch (error) {
+            console.error('Error al obtener comentarios por tarea:', error);
+            return [];
+        }
     }
 
-    getNextId() {
-        const comments = this.getComments();
-        return comments.length > 0 ? Math.max(...comments.map(c => c.id)) + 1 : 1;
-    }
-
-    addComment(comment) {
-        const comments = this.getComments();
-        comment.id = this.getNextId();
-        comment.createdAt = new Date().toISOString();
-        comments.push(comment);
-        this.saveComments(comments);
-        return comment;
-    }
-
-    getCommentsByTaskId(taskId) {
-        return this.getComments().filter(c => c.taskId === taskId);
-    }
-
-    getAllComments() {
-        return this.getComments();
+    async getAllComments() {
+        return await this.getComments();
     }
 }

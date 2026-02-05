@@ -11,11 +11,12 @@ class ProjectView {
         this.projectsTableBody.innerHTML = '';
         
         projects.forEach(project => {
+            const projectId = getId(project);
             const row = document.createElement('tr');
-            row.onclick = () => this.selectProject(project.id);
+            row.onclick = () => this.selectProject(projectId);
             
             row.innerHTML = `
-                <td>${project.id}</td>
+                <td>${projectId}</td>
                 <td>${project.name}</td>
                 <td>${project.description || ''}</td>
             `;
@@ -50,7 +51,7 @@ class ProjectView {
     populateProjectForm(project) {
         document.getElementById('projectName').value = project.name || '';
         document.getElementById('projectDescription').value = project.description || '';
-        this.selectedProjectId = project.id;
+        this.selectedProjectId = getId(project);
     }
 
     clearProjectForm() {
