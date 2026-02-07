@@ -1,56 +1,97 @@
-# Task Manager Legacy - MongoDB Migration
+# Task Manager - Sistema de Gestión de Tareas
 
-Aplicación de gestión de tareas migrada de localStorage a MongoDB.
+Sistema moderno de gestión de tareas con arquitectura MVC, backend en Node.js/Express y base de datos MongoDB.
 
-## 🚀 Instalación
+## 🎨 Características del Diseño
 
-1. **Instalar dependencias:**
+- **Interfaz Minimalista**: Diseño limpio y profesional con paleta de colores neutral
+- **Modo Oscuro Permanente**: Interfaz optimizada para reducir fatiga visual
+- **Diseño Responsivo**: Adaptable a dispositivos móviles, tablets y escritorio
+- **Glassmorfismo**: Efectos de vidrio esmerilado para profundidad visual
+- **Tipografía Moderna**: Fuentes Inter y JetBrains Mono de Google Fonts
+
+## 🚀 Tecnologías
+
+### Backend
+- **Node.js** - Entorno de ejecución
+- **Express** - Framework web
+- **Mongoose** - ODM para MongoDB
+- **MongoDB Atlas** - Base de datos en la nube
+
+### Frontend
+- **HTML5** - Estructura semántica
+- **CSS3** - Estilos modernos con variables CSS
+- **JavaScript Vanilla** - Lógica del cliente sin frameworks
+- **Arquitectura MVC** - Separación de responsabilidades
+
+## 📋 Requisitos Previos
+
+- Node.js (v14 o superior)
+- npm (v6 o superior)
+- Cuenta de MongoDB Atlas (o MongoDB local)
+
+## 🔧 Instalación
+
+1. **Clonar el repositorio**
+   ```bash
+   git clone <url-del-repositorio>
+   cd LegacyappMVC-1
+   ```
+
+2. **Instalar dependencias**
    ```bash
    npm install
    ```
 
-2. **Importar datos iniciales a MongoDB:**
+3. **Configurar la base de datos**
    
-   Usando mongoimport:
-   ```bash
-   mongoimport --uri "mongodb+srv://Eduardo12:holapapu@clustereduardo.hw818rh.mongodb.net/ProfRobert?retryWrites=true&w=majority&appName=ClusterEduardo" --db ProfRobert --collection users --file data-import/users.json --jsonArray
-   
-   mongoimport --uri "mongodb+srv://Eduardo12:holapapu@clustereduardo.hw818rh.mongodb.net/ProfRobert?retryWrites=true&w=majority&appName=ClusterEduardo" --db ProfRobert --collection projects --file data-import/projects.json --jsonArray
+   Asegúrate de tener MongoDB configurado. La cadena de conexión está en `config/database.js`:
+   ```javascript
+   mongodb+srv://Eduardo12:holapapu@clustereduardo.hw818rh.mongodb.net/ProfRobert
    ```
 
-   O usando MongoDB Compass:
-   - Conecta a tu cluster
-   - Selecciona la base de datos `ProfRobert` (o créala si no existe)
-   - Las colecciones se crearán automáticamente cuando se usen, o puedes crearlas manualmente: `users`, `projects`, `tasks`, `comments`, `history`, `notifications`
-   - Importa los archivos JSON desde la carpeta `data-import/`
-
-3. **Iniciar el servidor:**
-   ```bash
-   npm start
-   ```
+4. **Importar datos iniciales** (opcional)
    
-   O en modo desarrollo:
+   Usando MongoDB Compass o mongoimport:
    ```bash
-   npm run dev
+   mongoimport --uri "tu-uri-mongodb" --db ProfRobert --collection users --file data-import/users.json --jsonArray
+   mongoimport --uri "tu-uri-mongodb" --db ProfRobert --collection projects --file data-import/projects.json --jsonArray
    ```
 
-4. **Abrir la aplicación:**
-   - Abre `index.html` en tu navegador
-   - O sirve los archivos estáticos con un servidor HTTP (ej: `python -m http.server 8080`)
+## 🎯 Uso
+
+### Iniciar el servidor
+
+**Modo desarrollo:**
+```bash
+npm run dev
+```
+
+**Modo producción:**
+```bash
+npm start
+```
+
+El servidor se ejecutará en `http://localhost:3000`
+
+### Acceder a la aplicación
+
+1. Abre tu navegador en `http://localhost:3000`
+2. Abre el archivo `index.html` directamente
+3. O sirve los archivos estáticos con un servidor HTTP
+
+### Credenciales por defecto
+
+- **Admin**: usuario: `admin`, contraseña: `admin`
+- **Usuario 1**: usuario: `user1`, contraseña: `user1`
+- **Usuario 2**: usuario: `user2`, contraseña: `user2`
 
 ## 📁 Estructura del Proyecto
 
 ```
-LegacyappMVC/
+LegacyappMVC-1/
 ├── config/
-│   └── database.js          # Configuración de conexión MongoDB
-├── models-mongoose/          # Modelos Mongoose (backend)
-│   ├── User.js
-│   ├── Task.js
-│   ├── Project.js
-│   ├── Comment.js
-│   ├── History.js
-│   └── Notification.js
+│   └── database.js          # Configuración MongoDB
 ├── models/                   # Modelos del frontend (API calls)
 │   ├── userModel.js
 │   ├── taskModel.js
@@ -58,6 +99,13 @@ LegacyappMVC/
 │   ├── commentModel.js
 │   ├── historyModel.js
 │   └── notificationModel.js
+├── models-mongoose/          # Modelos Mongoose (backend)
+│   ├── User.js
+│   ├── Task.js
+│   ├── Project.js
+│   ├── Comment.js
+│   ├── History.js
+│   └── Notification.js
 ├── routes/                   # Rutas API REST
 │   ├── userRoutes.js
 │   ├── taskRoutes.js
@@ -68,13 +116,15 @@ LegacyappMVC/
 ├── controllers/              # Controladores del frontend
 ├── views/                    # Vistas del frontend
 ├── utils/
-│   └── idHelper.js          # Helper para manejar IDs MongoDB
-├── data-import/              # Datos iniciales para importar
+│   └── idHelper.js          # Helper para IDs MongoDB
+├── data-import/              # Datos iniciales
 │   ├── users.json
 │   └── projects.json
-├── server.js                 # Servidor Express
-├── package.json
-└── index.html
+├── index.html               # Página principal
+├── style.css                # Estilos CSS
+├── app.js                   # Lógica principal del frontend
+├── server.js                # Servidor Express
+└── package.json             # Dependencias del proyecto
 ```
 
 ## 🔌 API Endpoints
@@ -126,22 +176,106 @@ LegacyappMVC/
 - `PUT /api/notifications/:id` - Actualizar notificación
 - `DELETE /api/notifications/:id` - Eliminar notificación
 
-## 🔑 Credenciales por defecto
+## 🎨 Personalización del Diseño
 
-- **Admin:** usuario: `admin`, contraseña: `admin`
-- **Usuario 1:** usuario: `user1`, contraseña: `user1`
-- **Usuario 2:** usuario: `user2`, contraseña: `user2`
+El diseño utiliza variables CSS para facilitar la personalización. Edita `style.css`:
 
-## 📝 Notas
+```css
+:root {
+    --primary: hsl(217, 91%, 60%);      /* Color principal */
+    --bg-primary: hsl(0, 0%, 98%);      /* Fondo principal */
+    --text-primary: hsl(0, 0%, 9%);     /* Texto principal */
+    /* ... más variables */
+}
+```
 
-- El servidor corre en `http://localhost:3000` por defecto
-- La aplicación frontend debe hacer peticiones a `http://localhost:3000/api`
-- Los IDs de MongoDB se manejan automáticamente usando el helper `idHelper.js`
+## 🌙 Modo Oscuro
+
+La aplicación está configurada permanentemente en modo oscuro. Para cambiar esto, modifica la clase en `index.html`:
+
+```html
+<!-- Modo oscuro permanente -->
+<body class="dark-mode">
+
+<!-- Para modo claro -->
+<body>
+```
+
+## 📱 Características Responsivas
+
+- **Desktop (>768px)**: Formularios en 2 columnas
+- **Tablet/Mobile (≤768px)**: Formularios en 1 columna
+- Navegación por pestañas optimizada para móviles
+- Tablas con scroll horizontal en pantallas pequeñas
+
+## 🔒 Seguridad
+
+- Las contraseñas deben ser hasheadas en producción
+- Implementar autenticación JWT para APIs
+- Validar y sanitizar todas las entradas del usuario
+- Configurar CORS apropiadamente
+- Usar variables de entorno para credenciales sensibles
+
+## 🚧 Desarrollo
+
+### Scripts disponibles
+
+```bash
+npm start       # Inicia el servidor en modo producción
+npm run dev     # Inicia el servidor en modo desarrollo
+```
+
+### Agregar nuevas funcionalidades
+
+1. Crear modelo en `models-mongoose/`
+2. Crear rutas en `routes/`
+3. Crear modelo del frontend en `models/`
+4. Crear controlador en `controllers/`
+5. Crear vista en `views/`
+6. Actualizar `app.js` según sea necesario
+
+## 📝 Notas Técnicas
+
+- El servidor corre en el puerto 3000 por defecto
 - La base de datos se llama `ProfRobert` en MongoDB
+- Los IDs de MongoDB se manejan automáticamente con `idHelper.js`
+- Las peticiones del frontend van a `http://localhost:3000/api`
 
-## 🛠️ Tecnologías
+## 🐛 Solución de Problemas
 
-- **Backend:** Node.js, Express, Mongoose
-- **Base de datos:** MongoDB Atlas
-- **Frontend:** HTML, CSS, JavaScript vanilla
-- **Arquitectura:** MVC
+### Error de conexión a MongoDB
+- Verifica que la URI de conexión sea correcta
+- Asegúrate de que tu IP esté en la lista blanca de MongoDB Atlas
+- Comprueba las credenciales de usuario
+
+### El servidor no inicia
+- Verifica que el puerto 3000 esté disponible
+- Asegúrate de que todas las dependencias estén instaladas
+- Revisa los logs de error en la consola
+
+### Los estilos no se cargan
+- Verifica que `style.css` esté en la ruta correcta
+- Limpia la caché del navegador
+- Comprueba la consola del navegador para errores
+
+## 📄 Licencia
+
+Este proyecto es de código abierto y está disponible bajo la licencia MIT.
+
+## 👥 Contribuciones
+
+Las contribuciones son bienvenidas. Por favor:
+
+1. Haz fork del proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## 📧 Contacto
+
+Para preguntas o sugerencias, por favor abre un issue en el repositorio.
+
+---
+
+**Desarrollado con ❤️ usando Node.js, Express y MongoDB**
