@@ -1,15 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Manager Legacy - Sistema Simple</title>
+    <meta name="description"
+        content="Modern Task Manager - Organize your tasks, projects, and team collaboration efficiently">
+    <meta name="theme-color" content="#7c3aed">
+    <title>Task Manager - Modern Project Management</title>
+
+    <!-- Google Fonts Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+
+<body class="dark-mode">
+
     <div class="container">
-        <h1>Task Manager Legacy</h1>
-        
+        <h1>Task Manager</h1>
+
         <!-- Panel de Login -->
         <div id="loginPanel" class="panel">
             <h2>Login</h2>
@@ -45,7 +56,7 @@
             <!-- Tab: Tareas -->
             <div id="tasksTab" class="tab-content active">
                 <h2>Gestión de Tareas</h2>
-                
+
                 <div class="form-section">
                     <h3>Nueva/Editar Tarea</h3>
                     <div class="form-group">
@@ -273,7 +284,7 @@
 
     <!-- Utils -->
     <script src="utils/idHelper.js"></script>
-    
+
     <!-- Modelos -->
     <script src="models/userModel.js"></script>
     <script src="models/taskModel.js"></script>
@@ -281,7 +292,7 @@
     <script src="models/commentModel.js"></script>
     <script src="models/historyModel.js"></script>
     <script src="models/notificationModel.js"></script>
-    
+
     <!-- Controladores -->
     <script src="controllers/authController.js"></script>
     <script src="controllers/taskController.js"></script>
@@ -291,7 +302,7 @@
     <script src="controllers/notificationController.js"></script>
     <script src="controllers/searchController.js"></script>
     <script src="controllers/reportController.js"></script>
-    
+
     <!-- Vistas -->
     <script src="views/authView.js"></script>
     <script src="views/taskView.js"></script>
@@ -301,8 +312,9 @@
     <script src="views/notificationView.js"></script>
     <script src="views/searchView.js"></script>
     <script src="views/reportView.js"></script>
-    
+
     <!-- App Principal -->
     <script src="app.js"></script>
 </body>
+
 </html>
