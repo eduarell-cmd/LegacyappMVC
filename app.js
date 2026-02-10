@@ -245,9 +245,14 @@ async function addProject() {
         return;
     }
 
-    await projectController.addProject(projectData);
-    await loadProjects();
-    projectView.clearProjectForm();
+    const project = await projectController.addProject(projectData);
+    if (project) {
+        alert('Proyecto agregado exitosamente');
+        await loadProjects();
+        projectView.clearProjectForm();
+    } else {
+        alert('Error al agregar el proyecto');
+    }
 }
 
 async function updateProject() {
@@ -261,6 +266,7 @@ async function updateProject() {
     const result = await projectController.updateProject(projectId, projectData);
 
     if (result.success) {
+        alert('Proyecto actualizado exitosamente');
         await loadProjects();
         projectView.clearProjectForm();
         // Recargar tareas también para actualizar selects
@@ -282,6 +288,7 @@ async function deleteProject() {
     if (confirm('¿Estás seguro de eliminar este proyecto?')) {
         const result = await projectController.deleteProject(projectId);
         if (result.success) {
+            alert('Proyecto eliminado exitosamente');
             await loadProjects();
             projectView.clearProjectForm();
             // Recargar tareas también
@@ -290,6 +297,37 @@ async function deleteProject() {
             }
         }
     }
+}
+
+// Funciones para acciones directas desde la tabla de proyectos
+async function editProjectFromRow(projectId) {
+    const project = await projectController.getProject(projectId);
+    if (project) {
+        projectView.populateProjectForm(project);
+        // Scroll al formulario
+        document.querySelector('#projectsTab .form-section').scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+async function deleteProjectFromRow(projectId) {
+    if (confirm('¿Estás seguro de eliminar este proyecto?')) {
+        const result = await projectController.deleteProject(projectId);
+        if (result.success) {
+            alert('Proyecto eliminado exitosamente');
+            await loadProjects();
+            if (projectView.getSelectedProjectId() === projectId) {
+                projectView.clearProjectForm();
+            }
+            // Recargar tareas también
+            if (currentTab === 'tasks') {
+                await loadTasks();
+            }
+        }
+    }
+}
+
+function clearProjectForm() {
+    projectView.clearProjectForm();
 }
 
 // Funciones de Comentarios

@@ -10,6 +10,12 @@ const projectSchema = new mongoose.Schema({
     description: {
         type: String,
         trim: true
+    },
+    startDate: {
+        type: Date
+    },
+    endDate: {
+        type: Date
     }
 }, {
     timestamps: true
