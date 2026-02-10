@@ -32,6 +32,12 @@ class TaskView {
                 <td>${project ? project.name : (task.projectId?.name || 'N/A')}</td>
                 <td>${user ? (user.name || user.username) : (task.assignedTo?.name || task.assignedTo?.username || 'N/A')}</td>
                 <td>${task.dueDate || 'N/A'}</td>
+                <td>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="event.stopPropagation(); editTaskFromRow('${taskId}')" style="padding: 4px 8px; background: var(--info); font-size: 12px;">✏️</button>
+                        <button onclick="event.stopPropagation(); deleteTaskFromRow('${taskId}')" style="padding: 4px 8px; background: var(--danger); font-size: 12px;">🗑️</button>
+                    </div>
+                </td>
             `;
             
             this.tasksTableBody.appendChild(row);

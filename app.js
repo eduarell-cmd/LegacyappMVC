@@ -36,7 +36,7 @@ let currentTab = 'tasks';
 async function login() {
     const credentials = authView.getLoginData();
     const result = await authController.login(credentials.username, credentials.password);
-    
+
     if (result.success) {
         authView.showMain(result.user);
         initializeApp();
@@ -56,18 +56,18 @@ function showTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
     });
-    
+
     // Ocultar todos los botones activos
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('active');
     });
-    
+
     // Mostrar pestaña seleccionada
     const tabContent = document.getElementById(tabName + 'Tab');
     if (tabContent) {
         tabContent.classList.add('active');
     }
-    
+
     // Activar botón
     const buttons = document.querySelectorAll('.tab-button');
     buttons.forEach(btn => {
@@ -75,9 +75,9 @@ function showTab(tabName) {
             btn.classList.add('active');
         }
     });
-    
+
     currentTab = tabName;
-    
+
     // Cargar datos según la pestaña
     loadTabData(tabName);
 }
@@ -98,8 +98,8 @@ function getTabName(tabName) {
 async function loadTabData(tabName) {
     const user = authController.getCurrentUser();
     if (!user) return;
-    
-    switch(tabName) {
+
+    switch (tabName) {
         case 'tasks':
             await loadTasks();
             break;
@@ -128,12 +128,12 @@ async function loadTabData(tabName) {
 async function loadTasks() {
     const user = authController.getCurrentUser();
     if (!user) return;
-    
+
     const tasks = await taskController.getAllTasks();
     const projects = await projectController.getAllProjects();
     const users = await userModel.getAllUsers();
     const stats = await taskController.getStats();
-    
+
     taskView.renderTasks(tasks, projects, users);
     taskView.renderStats(stats);
     taskView.populateProjectSelect(projects);
@@ -143,32 +143,38 @@ async function loadTasks() {
 async function addTask() {
     const user = authController.getCurrentUser();
     if (!user) return;
-    
+
     const taskData = taskView.getTaskFormData();
     if (!taskData.title) {
         alert('El título es requerido');
         return;
     }
-    
-    await taskController.addTask(taskData, user);
-    await loadTasks();
-    taskView.clearTaskForm();
+
+    const task = await taskController.addTask(taskData, user);
+    if (task) {
+        alert('Tarea agregada exitosamente');
+        await loadTasks();
+        taskView.clearTaskForm();
+    } else {
+        alert('Error al agregar la tarea');
+    }
 }
 
 async function updateTask() {
     const user = authController.getCurrentUser();
     if (!user) return;
-    
+
     const taskId = taskView.getSelectedTaskId();
     if (!taskId) {
         alert('Selecciona una tarea primero');
         return;
     }
-    
+
     const taskData = taskView.getTaskFormData();
     const result = await taskController.updateTask(taskId, taskData, user);
-    
+
     if (result.success) {
+        alert('Tarea actualizada exitosamente');
         await loadTasks();
         taskView.clearTaskForm();
     } else {
@@ -179,18 +185,45 @@ async function updateTask() {
 async function deleteTask() {
     const user = authController.getCurrentUser();
     if (!user) return;
-    
+
     const taskId = taskView.getSelectedTaskId();
     if (!taskId) {
         alert('Selecciona una tarea primero');
         return;
     }
-    
+
     if (confirm('¿Estás seguro de eliminar esta tarea?')) {
         const result = await taskController.deleteTask(taskId, user);
         if (result.success) {
+            alert('Tarea eliminada exitosamente');
             await loadTasks();
             taskView.clearTaskForm();
+        }
+    }
+}
+
+// Funciones para acciones directas desde la tabla
+async function editTaskFromRow(taskId) {
+    const task = await taskController.getTask(taskId);
+    if (task) {
+        taskView.populateTaskForm(task);
+        // Scroll al formulario
+        document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+async function deleteTaskFromRow(taskId) {
+    const user = authController.getCurrentUser();
+    if (!user) return;
+
+    if (confirm('¿Estás seguro de eliminar esta tarea?')) {
+        const result = await taskController.deleteTask(taskId, user);
+        if (result.success) {
+            alert('Tarea eliminada exitosamente');
+            await loadTasks();
+            if (taskView.getSelectedTaskId() === taskId) {
+                taskView.clearTaskForm();
+            }
         }
     }
 }
@@ -211,7 +244,7 @@ async function addProject() {
         alert('El nombre es requerido');
         return;
     }
-    
+
     await projectController.addProject(projectData);
     await loadProjects();
     projectView.clearProjectForm();
@@ -223,10 +256,10 @@ async function updateProject() {
         alert('Selecciona un proyecto primero');
         return;
     }
-    
+
     const projectData = projectView.getProjectFormData();
     const result = await projectController.updateProject(projectId, projectData);
-    
+
     if (result.success) {
         await loadProjects();
         projectView.clearProjectForm();
@@ -245,7 +278,7 @@ async function deleteProject() {
         alert('Selecciona un proyecto primero');
         return;
     }
-    
+
     if (confirm('¿Estás seguro de eliminar este proyecto?')) {
         const result = await projectController.deleteProject(projectId);
         if (result.success) {
@@ -263,13 +296,13 @@ async function deleteProject() {
 async function addComment() {
     const user = authController.getCurrentUser();
     if (!user) return;
-    
+
     const commentData = commentView.getCommentFormData();
     if (!commentData.taskId || !commentData.text) {
         alert('ID de tarea y comentario son requeridos');
         return;
     }
-    
+
     const result = await commentController.addComment(commentData, user);
     if (result.success) {
         commentView.clearCommentForm();
@@ -285,7 +318,7 @@ async function loadComments() {
         alert('Ingresa un ID de tarea');
         return;
     }
-    
+
     const comments = await commentController.getCommentsByTaskId(taskId);
     commentView.renderComments(comments);
 }
@@ -297,7 +330,7 @@ async function loadHistory() {
         alert('Ingresa un ID de tarea');
         return;
     }
-    
+
     const history = await historyController.getHistoryByTaskId(taskId);
     historyView.renderHistory(history);
 }
@@ -311,7 +344,7 @@ async function loadAllHistory() {
 async function loadNotifications() {
     const user = authController.getCurrentUser();
     if (!user) return;
-    
+
     const userId = user._id || user.id;
     const notifications = await notificationController.getNotificationsByUserId(userId);
     notificationView.renderNotifications(notifications);
@@ -320,7 +353,7 @@ async function loadNotifications() {
 async function markNotificationsRead() {
     const user = authController.getCurrentUser();
     if (!user) return;
-    
+
     const userId = user._id || user.id;
     await notificationController.markAsRead(userId);
     await loadNotifications();
@@ -342,8 +375,8 @@ async function searchTasks() {
 // Funciones de Reportes
 async function generateReport(type) {
     let report = '';
-    
-    switch(type) {
+
+    switch (type) {
         case 'tasks':
             report = await reportController.generateTasksReport();
             break;
@@ -356,7 +389,7 @@ async function generateReport(type) {
         default:
             report = 'Tipo de reporte no válido';
     }
-    
+
     reportView.renderReport(report);
 }
 
@@ -378,12 +411,12 @@ function initializeApp() {
 }
 
 // Inicializar cuando se carga la página
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initializeApp();
 });
 
 // Manejar clics en filas de tareas para cargar datos en el formulario
-document.addEventListener('click', async function(e) {
+document.addEventListener('click', async function (e) {
     if (e.target.closest('#tasksTableBody tr')) {
         const row = e.target.closest('tr');
         const taskId = row.firstChild.textContent;
@@ -392,7 +425,7 @@ document.addEventListener('click', async function(e) {
             taskView.populateTaskForm(task);
         }
     }
-    
+
     if (e.target.closest('#projectsTableBody tr')) {
         const row = e.target.closest('tr');
         const projectId = row.firstChild.textContent;
